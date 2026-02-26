@@ -57,3 +57,21 @@ executable logistic-regression
         base ^>=4.17 || ^>=4.18 || ^>=4.19 || ^>=4.20
       , functional-autodiff
       , random ^>=1.2
+
+executable gen-data
+    import:           warnings
+    default-language: GHC2021
+    main-is:          GenData.hs
+    hs-source-dirs:   visualization
+    build-depends:
+        base ^>=4.17 || ^>=4.18 || ^>=4.19 || ^>=4.20
+      , functional-autodiff
+
+executable gen-gradient-data
+    import:           warnings
+    default-language: GHC2021
+    main-is:          GenGradientData.hs
+    hs-source-dirs:   visualization
+    build-depends:
+        base ^>=4.17 || ^>=4.18 || ^>=4.19 || ^>=4.20
+      , functional-autodiff

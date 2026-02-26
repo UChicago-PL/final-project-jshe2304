@@ -8,10 +8,10 @@ import matplotlib
 matplotlib.rcParams.update({"font.size": 11})
 
 LABELS = {
-    "polynomial": "x⁴ − 3x² + 2",
+    "polynomial": "x⁴ - 3x² + 2",
     "sinusoidal": "sin(x)",
     "exponential": "exp(x)",
-    "composite": "exp(−x²)",
+    "composite": "exp(-x²)",
 }
 
 

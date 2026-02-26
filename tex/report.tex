@@ -1,0 +1,144 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb}
+\usepackage{multirow}
+\usepackage{subcaption}
+
+\title{CMSC22300 Final Project: Forward-Mode Automatic Differentiation}
+\author{Jay Shen}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+This project implements a forward-mode automatic differentiation (AD) library in Haskell using dual numbers. Unlike symbolic differentiation, which manipulates expressions, or numerical differentiation, which approximates derivatives via finite differences, AD computes exact derivatives by augmenting each value with its derivative and propagating both through arithmetic operations via operator overloading. The library supports higher-order derivatives through function composition and gradients of multivariable functions. We demonstrate its correctness and utility through regressions and visualizations.
+
+\section{Implementation}
+
+\subsection{Dual Numbers}
+
+The core abstraction is the dual number type:
+\begin{verbatim}
+data Dual a = Dual { primal :: !a, tangent :: !a }
+\end{verbatim}
+A dual number $( x, x' )$ carries a primal value $x$ and a tangent $x'$. We hard code a complete set of arithmetic operations in the type class. For example, we define multiplication
+\[
+(x, x') \cdot (y, y') = ( xy,\; x'y + xy' )
+\]
+corresponding to the product rule. We provide \texttt{Num}, \texttt{Fractional}, and \texttt{Floating} instances that encode the chain rule for every elementary operation (addition, multiplication, division, \texttt{sin}, \texttt{cos}, \texttt{exp}, \texttt{log}, \texttt{sqrt}, etc.).
+
+\subsection{Differentiation Combinators}
+
+The key combinators are:
+\begin{itemize}
+  \item \texttt{var x = Dual x 1} instantiates a differentiable variable with derivative 1.
+  \item \texttt{diff f = \textbackslash x -> tangent (f (var x))} extracts the derivative of a univariate function as a first-class function.
+  \item \texttt{grad f xs} computes the gradient $\nabla f$ by compiling a list of partial derivatives
+\end{itemize}
+Because \texttt{diff} returns an ordinary function, higher-order derivatives are obtained by composition: \texttt{(diff . diff) f} is $f''$, \texttt{(diff . diff . diff) f} is $f'''$, and so on. This works because the user's function is polymorphic over \texttt{Num}/\texttt{Floating}, allowing nested layers of \texttt{Dual}.
+
+\section{Regression Examples}
+
+Both regression examples use \texttt{grad} to compute gradients of a loss function, which are then used for gradient descent optimization. The training loop is model-agnostic: it takes any polymorphic loss function \texttt{[a] -> a} and updates parameters by $\theta \leftarrow \theta - \eta \nabla L(\theta)$.
+
+\subsection{Linear Regression}
+
+We generate $n = 50$ noisy samples from $y = mx + b$ on $[-4, 4]$ with Gaussian noise ($\sigma = 0.5$) and minimize mean squared error:
+\[
+L(m, b) = \frac{1}{n} \sum_{i=1}^{n} \bigl(y_i - (m x_i + b)\bigr)^2
+\]
+Starting from $(m_0, b_0) = (0, 0)$ with learning rate $\eta = 0.001$ over 1000 steps, gradient descent recovers parameters close to the true values (Table~\ref{tab:linear}).
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Parameter} & \textbf{True} & \textbf{Fitted} & \textbf{Final Loss} \\
+\hline
+$m$ & 3.0 & 3.029 & \multirow{2}{*}{0.212} \\
+$b$ & 1.0 & 0.874 & \\
+\hline
+\end{tabular}
+\caption{Linear regression results after 1000 steps ($\eta = 0.001$).}
+\label{tab:linear}
+\end{table}
+
+\subsection{Logistic Regression}
+
+We generate 100 binary classification samples from two Gaussians ($\mu_0 = -2$, $\mu_1 = 2$, $\sigma = 1$) and fit a logistic model $P(y=1 \mid x) = \sigma(wx + b)$ by minimizing binary cross-entropy:
+\[
+L(w, b) = -\frac{1}{n} \sum_{i=1}^{n} \bigl[ y_i \log p_i + (1 - y_i) \log(1 - p_i) \bigr]
+\]
+where $p_i = \sigma(w x_i + b)$. With learning rate $\eta = 0.1$ over 1000 steps, the model learns a decision boundary and achieves high classification accuracy (Table~\ref{tab:logistic}).
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Parameter} & \textbf{Fitted} & \textbf{Decision Boundary} & \textbf{Final Loss} & \textbf{Accuracy} \\
+\hline
+$w$ & 3.360 & \multirow{2}{*}{$-0.032$} & \multirow{2}{*}{0.032} & \multirow{2}{*}{99\%} \\
+$b$ & 0.106 & & & \\
+\hline
+\end{tabular}
+\caption{Logistic regression results after 1000 steps ($\eta = 0.1$).}
+\label{tab:logistic}
+\end{table}
+
+\section{Visualizations}
+
+\subsection{Higher-Order Derivatives}
+
+We evaluate four test functions and their first three derivatives (computed via iterated \texttt{diff}) over a range of $x$ values. Figure \ref{fig:derivatives} shows that the AD-computed derivatives match the expected analytic forms.
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../visualization/images/polynomial.png}
+    \caption{$f(x) = x^4 - 3x^2 + 2$}
+    \label{fig:polynomial}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../visualization/images/sinusoidal.png}
+    \caption{$f(x) = \sin(x)$}
+    \label{fig:sinusoidal}
+  \end{subfigure}
+  \\[1em]
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../visualization/images/exponential.png}
+    \caption{$f(x) = e^x$}
+    \label{fig:exponential}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../visualization/images/composite.png}
+    \caption{$f(x) = e^{-x^2}$}
+    \label{fig:composite}
+  \end{subfigure}
+  \caption{Four test functions and their first three derivatives, computed via iterated \texttt{diff}.}
+  \label{fig:derivatives}
+\end{figure}
+
+\subsection{Gradient Field}
+
+We compute the gradient of $f(x, y) = \sin(x)\cos(y)$ over a $50 \times 50$ grid on $[-\pi, \pi]^2$ using \texttt{grad}. Figure \ref{fig:gradient} shows the 3D surface alongside a contour plot with overlaid gradient vectors, confirming that the gradient field points in the direction of steepest ascent.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{../visualization/images/gradient_field.png}
+  \caption{Surface and gradient field of $f(x,y) = \sin(x)\cos(y)$.}
+  \label{fig:gradient}
+\end{figure}
+
+\section{Conclusion}
+
+This project demonstrates that forward-mode AD via dual numbers provides a clean, composable approach to exact differentiation in a purely functional setting. Haskell's typeclass system makes the implementation concise: overloading arithmetic operators on \texttt{Dual} numbers is sufficient to differentiate any polymorphic function. The regression examples show that the computed gradients are accurate enough to drive gradient descent to convergence, and the visualizations confirm correctness of higher-order derivatives and multivariable gradients.
+
+\end{document}
