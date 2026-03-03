@@ -1,5 +1,3 @@
--- | Data generation utilities for examples.
-
 module DataGen (generateLinearData, generateBimodalData, gaussians) where
 
 import System.Random (mkStdGen, randoms)
@@ -16,7 +14,6 @@ gaussians mu sigma = go us
     go _ = []
 
 -- | Generate n noisy samples from f on [lo, hi] with Gaussian noise N(0, sigma^2).
--- Returns Rational pairs so the data can be used polymorphically in AD loss functions.
 generateLinearData :: (Double -> Double) -> Double -> Double -> Int -> Double -> [(Rational, Rational)]
 generateLinearData f lo hi n sigma =
     let step = (hi - lo) / fromIntegral (n - 1)
@@ -25,8 +22,7 @@ generateLinearData f lo hi n sigma =
     in zipWith (\x eps -> (toRational x, toRational (f x + eps))) xs noise
 
 -- | Generate binary classification data: n samples per class from two Gaussians.
--- Class 0 is drawn from N(mu0, sigma^2), class 1 from N(mu1, sigma^2).
--- Returns Rational pairs so the data can be used polymorphically in AD loss functions.
+-- Class 0 is drawn from N(mu0, sigma^2), class 1 from N(mu1, sigma^2). 
 generateBimodalData :: Double -> Double -> Double -> Int -> [(Rational, Rational)]
 generateBimodalData mu0 mu1 sigma n =
     let noise0 = take n (gaussians mu0 sigma)

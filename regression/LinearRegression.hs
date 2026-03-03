@@ -1,8 +1,7 @@
 -- | Simple linear regression using gradient descent powered by AutoDiff.
 --
 -- We fit y = m*x + b to noisy data sampled from a given function on [-4, 4].
--- Gradients are computed automatically via forward-mode AD.
---
+-- 
 -- Usage:  cabal run linear-regression -- <slope> <intercept>
 
 module Main where

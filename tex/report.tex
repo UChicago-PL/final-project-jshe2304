@@ -21,7 +21,7 @@ This project implements a forward-mode automatic differentiation (AD) library in
 
 The core abstraction is the dual number type:
 \begin{verbatim}
-data Dual a = Dual { primal :: !a, tangent :: !a }
+data Dual a = Dual { primal :: a, tangent :: a }
 \end{verbatim}
 A dual number $( x, x' )$ carries a primal value $x$ and a tangent $x'$. We hard code a complete set of arithmetic operations in the type class. For example, we define multiplication
 \[

@@ -10,7 +10,7 @@ matplotlib.rcParams.update({"font.size": 11})
 
 
 def main():
-    path = "visualization/data/gradient_field.csv"
+    path = "visualization/data/gradients/sinxcosy.csv"
     xs, ys, fs, dxs, dys = [], [], [], [], []
     with open(path) as fh:
         reader = csv.DictReader(fh)

@@ -16,7 +16,7 @@ LABELS = {
 
 
 def main():
-    data_dir = "visualization/data"
+    data_dir = "visualization/data/derivatives"
     csv_files = sorted(glob.glob(os.path.join(data_dir, "*.csv")))
 
     if not csv_files:

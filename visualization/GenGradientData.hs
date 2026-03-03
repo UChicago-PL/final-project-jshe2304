@@ -1,28 +1,20 @@
--- | Generate CSV data for a 2D gradient field visualization.
 module Main where
 
 import AutoDiff
 
--- | The function to visualize: f(x, y) = sin(x) * cos(y)
-f :: Floating a => [a] -> a
-f [x, y] = sin x * cos y
-f _ = error "f expects exactly 2 inputs"
+-- Sample a 2D function and its gradient over a grid, writing a CSV file.
+writeGradientField :: String -> (Double, Double) -> Int -> (forall a. Floating a => [a] -> a) -> IO ()
+writeGradientField name (lo, hi) n f = do
+    let path = "visualization/data/gradients/" ++ name ++ ".csv"
+        header = "x,y,f,df_dx,df_dy"
+        -- Create domain by interpolating from lo to hi
+        domain = [lo + (hi - lo) * fromIntegral i / fromIntegral (n - 1) | i <- [0 .. n - 1]]
+        -- Helper to create CSV row of gradient values
+        createLine x y = let [gx, gy] = grad f [x, y]
+                         in show x ++ "," ++ show y ++ "," ++ show (f [x, y]) ++ "," ++ show gx ++ "," ++ show gy
+        rows = [createLine x y | x <- domain, y <- domain]
+    writeFile path (unlines (header : rows))
 
 main :: IO ()
 main = do
-    let path = "visualization/data/gradient_field.csv"
-        n = 50
-        lo = -pi
-        hi = pi
-        step = (hi - lo) / fromIntegral (n - 1)
-        header = "x,y,f,df_dx,df_dy"
-        rows =
-            [ show x ++ "," ++ show y ++ "," ++ show (f [x, y]) ++ "," ++ show gx ++ "," ++ show gy
-            | i <- [0 .. n - 1]
-            , let x = lo + step * fromIntegral i
-            , j <- [0 .. n - 1]
-            , let y = lo + step * fromIntegral j
-            , let [gx, gy] = grad f [x, y]
-            ]
-    writeFile path (unlines (header : rows))
-    putStrLn $ "Wrote " ++ path
+    writeGradientField "sinxcosy" (-pi, pi) 50 (\[x, y] -> sin x * cos y)

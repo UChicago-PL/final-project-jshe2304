@@ -1,8 +1,6 @@
--- | Logistic regression using gradient descent powered by AutoDiff.
+-- Logistic regression using gradient descent. 
 --
--- We fit P(y=1|x) = sigmoid(w*x + b) to binary classification data
--- generated from two Gaussians. Gradients are computed automatically
--- via forward-mode AD.
+-- We fit P(y=1|x) = sigmoid(w*x + b) to binary classification data generated from two Gaussians. 
 --
 -- Usage:  cabal run logistic-regression -- <mu0> <mu1> <sigma>
 
@@ -12,11 +10,11 @@ import DataGen (generateBimodalData)
 import Train   (train)
 import System.Environment (getArgs)
 
--- | Sigmoid (logistic) function.
+-- Sigmoid (logistic) function.
 sigmoid :: Floating a => a -> a
 sigmoid z = 1 / (1 + exp (negate z))
 
--- | Binary cross-entropy loss for logistic regression.
+-- Binary cross-entropy loss for logistic regression.
 -- Model: P(y=1|x) = sigmoid(w*x + b), params = [w, b].
 bce :: Floating a => [(Rational, Rational)] -> [a] -> a
 bce dataset params =
@@ -31,11 +29,11 @@ bce dataset params =
             ]
     in sum losses / n
 
--- | Classify a point: 1 if sigmoid(w*x + b) >= 0.5, else 0.
+-- Classify a point using 0.5 decision boundary
 classify :: Double -> Double -> Rational -> Double
 classify w b x = if sigmoid (w * fromRational x + b) >= 0.5 then 1 else 0
 
--- | Compute classification accuracy.
+-- Compute classification accuracy.
 accuracy :: Double -> Double -> [(Rational, Rational)] -> Double
 accuracy w b dataset =
     let correct = length [() | (x, y) <- dataset, classify w b x == fromRational y]
