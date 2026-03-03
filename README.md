@@ -1,6 +1,6 @@
 # Functional Auto-Differentiation
 
-A forward-mode automatic differentiation library in Haskell using dual numbers. 
+A forward-mode automatic differentiation library in Haskell using dual numbers. Below is a guide to running all the code. A nice looking TeX report and the slides used in the presentation are in `tex/`. 
 
 ## Build
 
